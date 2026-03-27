@@ -1,0 +1,12 @@
+services:
+  dvgrab-web:
+    build: .
+    container_name: dvgrab-web
+    devices:
+      - /dev/fw0:/dev/fw0
+    volumes:
+      - /home/thorsten/media/minidv:/captures
+    ports:
+      - "5151:5000"
+    privileged: true
+    restart: unless-stopped

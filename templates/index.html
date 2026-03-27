@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dvgrab-web</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1a2e; color: #eee; min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 30px; color: #00d4ff; }
+        .card { background: #16213e; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+        .card h2 { margin-bottom: 15px; color: #00d4ff; font-size: 1.2em; }
+        .form-row { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
+        .form-group { flex: 1; min-width: 150px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #888; font-size: 0.9em; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #333; border-radius: 5px; background: #0f0f23; color: #eee; font-size: 1em; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; }
+        .checkbox-group input { width: auto; }
+        .btn { padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; transition: all 0.3s; }
+        .btn-start { background: #00c853; color: #000; }
+        .btn-start:hover { background: #00e676; }
+        .btn-stop { background: #ff1744; color: #fff; }
+        .btn-stop:hover { background: #ff5252; }
+        .btn-download { background: #2196f3; color: #fff; padding: 6px 12px; font-size: 0.85em; }
+        .btn-delete { background: #ff9800; color: #000; padding: 6px 12px; font-size: 0.85em; }
+        .status { padding: 15px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-weight: bold; }
+        .status.running { background: #00c853; color: #000; }
+        .status.stopped { background: #333; color: #888; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
+        th { color: #00d4ff; }
+        .actions { display: flex; gap: 8px; }
+        .empty { text-align: center; color: #666; padding: 30px; }
+        @media (max-width: 600px) { .form-row { flex-direction: column; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>dvgrab-web</h1>
+        
+        <div class="card">
+            <h2>Capture Control</h2>
+            <div id="status-box" class="status stopped">Stopped</div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Filename Prefix</label>
+                    <input type="text" id="prefix" value="capture-" placeholder="e.g. vacation-">
+                </div>
+                <div class="form-group">
+                    <label>Format</label>
+                    <select id="format">
+                        <option value="dv2">DV2 (AVI)</option>
+                        <option value="dv1">DV1</option>
+                        <option value="raw">RAW (.dv)</option>
+                        <option value="mov">QuickTime (.mov)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="autosplit">
+                    <label for="autosplit" style="margin:0;">Autosplit (scene detection)</label>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <button id="btn-start" class="btn btn-start" onclick="startCapture()">Start Capture</button>
+                <button id="btn-stop" class="btn btn-stop" onclick="stopCapture()" disabled>Stop Capture</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Captured Files</h2>
+            <div id="files-container">
+                <p class="empty">No files captured yet</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function updateStatus() {
+            fetch('/api/status')
+                .then(r => r.json())
+                .then(data => {
+                    const box = document.getElementById('status-box');
+                    const btnStart = document.getElementById('btn-start');
+                    const btnStop = document.getElementById('btn-stop');
+                    
+                    if (data.running) {
+                        box.className = 'status running';
+                        box.textContent = `Capturing: ${data.filename} (PID: ${data.pid})`;
+                        btnStart.disabled = true;
+                        btnStop.disabled = false;
+                    } else {
+                        box.className = 'status stopped';
+                        box.textContent = 'Stopped';
+                        btnStart.disabled = false;
+                        btnStop.disabled = true;
+                    }
+                });
+        }
+        
+        function updateFiles() {
+            fetch('/api/files')
+                .then(r => r.json())
+                .then(files => {
+                    const container = document.getElementById('files-container');
+                    if (files.length === 0) {
+                        container.innerHTML = '<p class="empty">No files captured yet</p>';
+                        return;
+                    }
+                    
+                    let html = '<table><thead><tr><th>Filename</th><th>Size</th><th>Actions</th></tr></thead><tbody>';
+                    files.forEach(f => {
+                        const size = (f.size / 1024 / 1024).toFixed(2) + ' MB';
+                        html += `<tr>
+                            <td>${f.name}</td>
+                            <td>${size}</td>
+                            <td class="actions">
+                                <button class="btn btn-download" onclick="downloadFile('${f.name}')">Download</button>
+                                <button class="btn btn-delete" onclick="deleteFile('${f.name}')">Delete</button>
+                            </td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                });
+        }
+        
+        function startCapture() {
+            const data = {
+                prefix: document.getElementById('prefix').value || 'capture-',
+                format: document.getElementById('format').value,
+                autosplit: document.getElementById('autosplit').checked
+            };
+            
+            fetch('/api/start', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.error) alert('Error: ' + res.error);
+                else updateStatus();
+            });
+        }
+        
+        function stopCapture() {
+            fetch('/api/stop', {method: 'POST'})
+                .then(r => r.json())
+                .then(res => {
+                    if (res.error) alert('Error: ' + res.error);
+                    else {
+                        updateStatus();
+                        setTimeout(updateFiles, 1000);
+                    }
+                });
+        }
+        
+        function downloadFile(name) {
+            window.location = '/api/download/' + encodeURIComponent(name);
+        }
+        
+        function deleteFile(name) {
+            if (confirm('Delete ' + name + '?')) {
+                fetch('/api/delete/' + encodeURIComponent(name), {method: 'DELETE'})
+                    .then(() => updateFiles());
+            }
+        }
+        
+        setInterval(() => { updateStatus(); updateFiles(); }, 2000);
+        updateStatus();
+        updateFiles();
+    </script>
+</body>
+</html>
