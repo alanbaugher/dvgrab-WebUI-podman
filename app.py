@@ -10,6 +10,23 @@ CAPTURE_DIR = "/captures"
 capture_process = None
 capture_status = {"running": False, "filename": None, "pid": None}
 
+def detect_camcorder():
+    """Check if a DV camcorder is connected via FireWire/IEEE 1394"""
+    devices_path = "/sys/bus/firewire/devices/"
+    if not os.path.exists(devices_path):
+        return False
+    
+    try:
+        for device in os.listdir(devices_path):
+            is_local_path = os.path.join(devices_path, device, "is_local")
+            if os.path.exists(is_local_path):
+                with open(is_local_path) as f:
+                    if f.read().strip() == "0":
+                        return True
+    except (IOError, OSError):
+        pass
+    return False
+
 def get_files():
     files = []
     for ext in ["*.dv", "*.avi", "*.mov", "*.mkv"]:
@@ -78,6 +95,11 @@ def stop_capture():
 @app.route("/api/status")
 def status():
     return jsonify(capture_status)
+
+@app.route("/api/device")
+def device_status():
+    """Return whether a DV camcorder is connected"""
+    return jsonify({"connected": detect_camcorder()})
 
 @app.route("/api/files")
 def list_files():

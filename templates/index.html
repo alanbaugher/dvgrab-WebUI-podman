@@ -6,42 +6,372 @@
     <title>dvgrab-web</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1a2e; color: #eee; min-height: 100vh; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; }
-        h1 { text-align: center; margin-bottom: 30px; color: #00d4ff; }
-        .card { background: #16213e; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
-        .card h2 { margin-bottom: 15px; color: #00d4ff; font-size: 1.2em; }
-        .form-row { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
-        .form-group { flex: 1; min-width: 150px; }
-        .form-group label { display: block; margin-bottom: 5px; color: #888; font-size: 0.9em; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #333; border-radius: 5px; background: #0f0f23; color: #eee; font-size: 1em; }
-        .checkbox-group { display: flex; align-items: center; gap: 10px; }
-        .checkbox-group input { width: auto; }
-        .btn { padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; transition: all 0.3s; }
-        .btn-start { background: #00c853; color: #000; }
-        .btn-start:hover { background: #00e676; }
-        .btn-stop { background: #ff1744; color: #fff; }
-        .btn-stop:hover { background: #ff5252; }
-        .btn-download { background: #2196f3; color: #fff; padding: 6px 12px; font-size: 0.85em; }
-        .btn-delete { background: #ff9800; color: #000; padding: 6px 12px; font-size: 0.85em; }
-        .status { padding: 15px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-weight: bold; }
-        .status.running { background: #00c853; color: #000; }
-        .status.stopped { background: #333; color: #888; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
-        th { color: #00d4ff; }
-        .actions { display: flex; gap: 8px; }
-        .empty { text-align: center; color: #666; padding: 30px; }
-        @media (max-width: 600px) { .form-row { flex-direction: column; } }
+
+        body {
+            font-family: "Courier New", "Lucida Console", monospace;
+            background: #0a1628;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.15) 2px,
+                rgba(0, 0, 0, 0.15) 4px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            border: 3px outset #2a4a6a;
+            background: #0d1a2d;
+            padding: 25px;
+            box-shadow: 
+                inset 1px 1px 0 rgba(255,255,255,0.1),
+                inset -1px -1px 0 rgba(0,0,0,0.3),
+                5px 5px 15px rgba(0,0,0,0.5);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #ff9f1c;
+            text-shadow: 
+                0 0 10px #ff9f1c,
+                0 0 20px #ff9f1c,
+                0 0 30px #ff9f1c;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            font-family: "Courier New", monospace;
+            border-bottom: 2px groove #2a4a6a;
+            padding-bottom: 15px;
+        }
+
+        .status-lcd {
+            background: #050a12;
+            border: 3px inset #1a2a3a;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            font-family: "Courier New", monospace;
+            font-size: 1.1em;
+            box-shadow: inset 2px 2px 8px rgba(0,0,0,0.8);
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .status-lcd .status-text {
+            flex: 1;
+        }
+
+        .status-lcd.no-signal {
+            color: #666666;
+            text-shadow: none;
+        }
+
+        .status-lcd.no-signal .static-bars {
+            display: inline-block;
+            width: 100%;
+            height: 4px;
+            background: repeating-linear-gradient(
+                90deg,
+                #333 0px,
+                #333 2px,
+                #222 2px,
+                #222 4px
+            );
+            animation: static-flicker 0.1s infinite;
+        }
+
+        @keyframes static-flicker {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 0.4; }
+        }
+
+        .status-lcd.connected {
+            color: #39ff14;
+            text-shadow: 0 0 8px #39ff14;
+        }
+
+        .status-lcd.recording {
+            color: #ff9f1c;
+            text-shadow: 0 0 8px #ff9f1c;
+        }
+
+        .rec-indicator {
+            color: #ff0040;
+            font-weight: bold;
+            animation: rec-blink 1s ease-in-out infinite;
+        }
+
+        @keyframes rec-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+
+        .card {
+            background: #12202e;
+            border: 2px outset #2a4a6a;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 
+                inset 1px 1px 0 rgba(255,255,255,0.05),
+                inset -1px -1px 0 rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            margin-bottom: 15px;
+            color: #ff9f1c;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 1px groove #2a4a6a;
+            padding-bottom: 8px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #ff9f1c;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px inset #1a2a3a;
+            border-radius: 0;
+            background: #0a1520;
+            color: #39ff14;
+            font-family: "Courier New", monospace;
+            font-size: 1em;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #ff9f1c;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5), 0 0 5px rgba(255,159,28,0.3);
+        }
+
+        input::placeholder {
+            color: #4a5a6a;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ff9f1c' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+        }
+
+        select option {
+            background: #0d1a2d;
+            color: #e0e0e0;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            appearance: none;
+            border: 2px inset #1a2a3a;
+            background: #0a1520;
+            cursor: pointer;
+            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.5);
+        }
+
+        .checkbox-group input[type="checkbox"]:checked {
+            background: #39ff14;
+            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.3), 0 0 5px #39ff14;
+        }
+
+        .checkbox-group label {
+            margin: 0 !important;
+            border: none !important;
+            padding: 0 !important;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: 2px outset;
+            border-radius: 0;
+            cursor: pointer;
+            font-family: "Courier New", monospace;
+            font-size: 1em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.1s;
+        }
+
+        .btn:active {
+            border-style: inset;
+            transform: translate(1px, 1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-style: outset;
+            transform: none;
+        }
+
+        .btn-start {
+            background: linear-gradient(180deg, #2ecc71 0%, #27ae60 50%, #1e8449 100%);
+            border-color: #2ecc71 #1e8449 #1e8449 #2ecc71;
+            color: #000;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+        }
+
+        .btn-start:hover:not(:disabled) {
+            background: linear-gradient(180deg, #58d68d 0%, #2ecc71 50%, #27ae60 100%);
+        }
+
+        .btn-start:active:not(:disabled) {
+            background: linear-gradient(180deg, #1e8449 0%, #27ae60 50%, #2ecc71 100%);
+        }
+
+        .btn-stop {
+            background: linear-gradient(180deg, #e74c3c 0%, #c0392b 50%, #922b21 100%);
+            border-color: #e74c3c #922b21 #922b21 #e74c3c;
+            color: #fff;
+            text-shadow: 0 1px 0 rgba(0,0,0,0.3);
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            background: linear-gradient(180deg, #ec7063 0%, #e74c3c 50%, #c0392b 100%);
+        }
+
+        .btn-stop:active:not(:disabled) {
+            background: linear-gradient(180deg, #922b21 0%, #c0392b 50%, #e74c3c 100%);
+        }
+
+        .btn-download, .btn-delete {
+            padding: 6px 12px;
+            font-size: 0.8em;
+            background: linear-gradient(180deg, #d4d4d4 0%, #a0a0a0 50%, #808080 100%);
+            border-color: #d4d4d4 #606060 #606060 #d4d4d4;
+            color: #000;
+        }
+
+        .btn-download:hover, .btn-delete:hover {
+            background: linear-gradient(180deg, #e8e8e8 0%, #b8b8b8 50%, #909090 100%);
+        }
+
+        .btn-download:active, .btn-delete:active {
+            background: linear-gradient(180deg, #808080 0%, #a0a0a0 50%, #d4d4d4 100%);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 2px inset #1a2a3a;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px groove #2a4a6a;
+        }
+
+        th {
+            background: #0a1520;
+            color: #ff9f1c;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 1px;
+        }
+
+        tr:nth-child(odd) {
+            background: #0d1a2d;
+        }
+
+        tr:nth-child(even) {
+            background: #12202e;
+        }
+
+        tr:hover {
+            background: #1a2a3d;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .empty {
+            text-align: center;
+            color: #4a5a6a;
+            padding: 30px;
+            font-style: italic;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+                letter-spacing: 4px;
+            }
+            
+            .btn {
+                padding: 10px 16px;
+                font-size: 0.9em;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>dvgrab-web</h1>
+        <h1>DVGRAB-WEB</h1>
         
         <div class="card">
             <h2>Capture Control</h2>
-            <div id="status-box" class="status stopped">Stopped</div>
+            <div id="status-lcd" class="status-lcd no-signal">
+                <span class="status-text">NO SIGNAL</span>
+                <span class="static-bars"></span>
+            </div>
             
             <div class="form-row">
                 <div class="form-group">
@@ -62,7 +392,7 @@
             <div class="form-row">
                 <div class="form-group checkbox-group">
                     <input type="checkbox" id="autosplit">
-                    <label for="autosplit" style="margin:0;">Autosplit (scene detection)</label>
+                    <label for="autosplit">Autosplit (scene detection)</label>
                 </div>
             </div>
             
@@ -81,23 +411,47 @@
     </div>
     
     <script>
-        function updateStatus() {
+        let deviceConnected = false;
+
+        function updateDeviceStatus() {
+            fetch('/api/device')
+                .then(r => r.json())
+                .then(data => {
+                    deviceConnected = data.connected;
+                    updateStatusDisplay();
+                });
+        }
+
+        function updateStatusDisplay() {
             fetch('/api/status')
                 .then(r => r.json())
                 .then(data => {
-                    const box = document.getElementById('status-box');
+                    const lcd = document.getElementById('status-lcd');
                     const btnStart = document.getElementById('btn-start');
                     const btnStop = document.getElementById('btn-stop');
                     
+                    lcd.classList.remove('no-signal', 'connected', 'recording');
+                    
                     if (data.running) {
-                        box.className = 'status running';
-                        box.textContent = `Capturing: ${data.filename} (PID: ${data.pid})`;
+                        lcd.classList.add('recording');
+                        lcd.innerHTML = `
+                            <span class="rec-indicator">● REC</span>
+                            <span class="status-text">${data.filename} (PID: ${data.pid})</span>
+                        `;
                         btnStart.disabled = true;
                         btnStop.disabled = false;
-                    } else {
-                        box.className = 'status stopped';
-                        box.textContent = 'Stopped';
+                    } else if (deviceConnected) {
+                        lcd.classList.add('connected');
+                        lcd.innerHTML = '<span class="status-text">► CONNECTED</span>';
                         btnStart.disabled = false;
+                        btnStop.disabled = true;
+                    } else {
+                        lcd.classList.add('no-signal');
+                        lcd.innerHTML = `
+                            <span class="status-text">NO SIGNAL</span>
+                            <span class="static-bars"></span>
+                        `;
+                        btnStart.disabled = true;
                         btnStop.disabled = true;
                     }
                 });
@@ -145,7 +499,7 @@
             .then(r => r.json())
             .then(res => {
                 if (res.error) alert('Error: ' + res.error);
-                else updateStatus();
+                else updateStatusDisplay();
             });
         }
         
@@ -155,7 +509,7 @@
                 .then(res => {
                     if (res.error) alert('Error: ' + res.error);
                     else {
-                        updateStatus();
+                        updateStatusDisplay();
                         setTimeout(updateFiles, 1000);
                     }
                 });
@@ -172,8 +526,12 @@
             }
         }
         
-        setInterval(() => { updateStatus(); updateFiles(); }, 2000);
-        updateStatus();
+        setInterval(() => { 
+            updateDeviceStatus(); 
+            updateFiles(); 
+        }, 2000);
+        
+        updateDeviceStatus();
         updateFiles();
     </script>
 </body>
