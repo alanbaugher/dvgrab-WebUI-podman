@@ -7,5 +7,6 @@ RUN pip install flask
 
 COPY app.py .
 COPY templates/ templates/
+COPY static/ static/
 
 ENTRYPOINT ["python3", "app.py"]

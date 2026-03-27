@@ -4,7 +4,7 @@ import os
 import threading
 import glob
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 
 CAPTURE_DIR = "/captures"
 capture_process = None

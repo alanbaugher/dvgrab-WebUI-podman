@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dvgrab-web</title>
+    <meta name="theme-color" content="#ff9f1c">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icon.svg">
+    <title>DVGRAB APP</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -364,7 +367,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>DVGRAB-WEB</h1>
+        <h1>DVGRAB APP</h1>
         
         <div class="card">
             <h2>Capture Control</h2>
@@ -533,6 +536,8 @@
         
         updateDeviceStatus();
         updateFiles();
+        
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('/static/sw.js');
     </script>
 </body>
 </html>
