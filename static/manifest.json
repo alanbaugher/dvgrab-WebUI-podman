@@ -1,7 +1,7 @@
 {
   "name": "DVGRAB APP",
   "short_name": "DVGRAB",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "DV video capture from FireWire camcorders",
   "start_url": "/",
   "display": "standalone",

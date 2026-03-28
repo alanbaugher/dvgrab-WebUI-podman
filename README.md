@@ -25,13 +25,23 @@ A containerized web-based UI for capturing DV video from your favorite FireWire-
 - Docker and Docker Compose
 - FireWire kernel modules loaded (`firewire_ohci`, `firewire_core`)
 
+## Hardware Compatibility
+
+**Works with any OHCI-compliant FireWire controller.** Virtually all FireWire cards follow the OHCI (Open Host Controller Interface) standard, so you don't need to worry about specific card compatibility.
+
+- The Linux kernel automatically detects and supports any OHCI-compliant FireWire card
+- Common chipsets (TI, VIA, NEC, Agere, etc.) all work out of the box
+- The `/dev/fw0` device is created automatically regardless of card manufacturer
+
+**Multiple FireWire devices:** If you have multiple FireWire cards or devices, you may see `/dev/fw0`, `/dev/fw1`, etc. Adjust the device path in `docker-compose.yml` if needed.
+
 ## Installation
 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/henniiiing/dvgrab-web.git
-cd dvgrab-web
+git clone https://github.com/henniiiing/dvgrab-WebUI.git
+cd dvgrab-WebUI
 ```
 
 ### 2. Build and run with Docker Compose
@@ -76,6 +86,20 @@ Files are saved to `/captures` inside the container. To change the host director
 ```yaml
 volumes:
   - /path/to/your/captures:/captures
+```
+
+### FireWire device
+
+If you have multiple FireWire devices, change the device path in `docker-compose.yml`:
+
+```yaml
+devices:
+  - /dev/fw1:/dev/fw0  # Use fw1 instead of fw0
+```
+
+Check which device your camcorder is connected to:
+```bash
+ls -la /dev/fw*
 ```
 
 ### File Formats
