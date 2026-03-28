@@ -1,6 +1,6 @@
-# dvgrab-web
+# dvgrab APP
 
-A web-based UI for capturing DV video from FireWire-connected camcorders using dvgrab.
+A containerized web-based UI for capturing DV video from your favorite FireWire-connected camcorders straight from the glory 90ies using dvgrab.
 
 ## Features
 
