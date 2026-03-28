@@ -175,7 +175,7 @@ sudo chmod 666 /dev/fw0
 
 Check logs:
 ```bash
-docker logs dvgrab-web
+docker compose logs -f
 ```
 
 ## Tech Stack
