@@ -6,7 +6,7 @@ services:
       - /dev/fw0:/dev/fw0
       - /dev/fw1:/dev/fw1
     volumes:
-      - /home/thorsten/media/minidv:/captures
+      - ./captures:/captures
     ports:
       - "5151:5000"
     privileged: true

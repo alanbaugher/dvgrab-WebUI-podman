@@ -14,6 +14,12 @@ A web-based UI for capturing DV video from FireWire-connected camcorders using d
 - **Headless-friendly** - Perfect for servers without displays
 - **Retro CRT-style UI** - Nostalgic interface with scanlines and LCD aesthetics
 
+## Screenshots
+
+| Idle | Recording | Delete Confirmation |
+|:----:|:---------:|:-------------------:|
+| ![Idle](screenshots/ui-idle.png) | ![Recording](screenshots/ui-recording.png) | ![Delete](screenshots/ui-delete-confirm.png) |
+
 ## Requirements
 
 - Linux system with FireWire (IEEE 1394) port
