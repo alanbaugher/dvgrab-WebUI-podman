@@ -3,17 +3,22 @@ import subprocess
 import os
 import threading
 import glob
+import logging
 
 app = Flask(__name__, static_folder='static')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
+VERSION = "0.2.0"
 CAPTURE_DIR = "/captures"
 capture_process = None
 capture_status = {"running": False, "filename": None, "pid": None}
+capture_stderr = []
 
 def detect_camcorder():
     """Check if a DV camcorder is connected via FireWire/IEEE 1394"""
     devices_path = "/sys/bus/firewire/devices/"
-    result = {"connected": False, "vendor": None, "model": None}
+    result = {"connected": False, "vendor": None, "model": None, "guid": None}
     
     if not os.path.exists(devices_path):
         return result
@@ -27,6 +32,7 @@ def detect_camcorder():
                     if f.read().strip() == "0":
                         vendor_path = os.path.join(device_path, "vendor_name")
                         model_path = os.path.join(device_path, "model_name")
+                        guid_path = os.path.join(device_path, "guid")
                         
                         try:
                             if os.path.exists(vendor_path):
@@ -36,6 +42,11 @@ def detect_camcorder():
                         try:
                             if os.path.exists(model_path):
                                 result["model"] = open(model_path).read().strip()
+                        except:
+                            pass
+                        try:
+                            if os.path.exists(guid_path):
+                                result["guid"] = open(guid_path).read().strip()
                         except:
                             pass
                         
@@ -52,13 +63,25 @@ def get_files():
     files.sort(key=os.path.getmtime, reverse=True)
     return [{"name": os.path.basename(f), "size": os.path.getsize(f)} for f in files]
 
+def monitor_capture():
+    global capture_process, capture_status, capture_stderr
+    if capture_process:
+        stdout, stderr = capture_process.communicate()
+        returncode = capture_process.returncode
+        if returncode != 0:
+            logger.error(f"dvgrab exited with code {returncode}: {stderr}")
+        else:
+            logger.info(f"dvgrab exited normally")
+        capture_process = None
+        capture_status = {"running": False, "filename": None, "pid": None}
+
 @app.route("/")
 def index():
     return render_template("index.html", files=get_files(), status=capture_status)
 
 @app.route("/api/start", methods=["POST"])
 def start_capture():
-    global capture_process, capture_status
+    global capture_process, capture_status, capture_stderr
     
     if capture_status["running"]:
         return jsonify({"error": "Capture already running"}), 400
@@ -68,7 +91,12 @@ def start_capture():
     fmt = data.get("format", "dv2")
     autosplit = data.get("autosplit", False)
     
-    cmd = ["dvgrab", "-f", fmt, "-card", "0"]
+    cmd = ["dvgrab", "-f", fmt]
+    
+    device = detect_camcorder()
+    if device.get("guid"):
+        cmd.extend(["-guid", device["guid"]])
+    
     if autosplit:
         cmd.append("-autosplit")
     cmd.append(os.path.join(CAPTURE_DIR, prefix))
@@ -87,8 +115,13 @@ def start_capture():
             "format": fmt,
             "autosplit": autosplit
         }
+        capture_stderr = []
+        monitor_thread = threading.Thread(target=monitor_capture, daemon=True)
+        monitor_thread.start()
+        logger.info(f"Started dvgrab with PID {capture_process.pid}: {' '.join(cmd)}")
         return jsonify({"status": "started", "pid": capture_process.pid})
     except Exception as e:
+        logger.error(f"Failed to start dvgrab: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/stop", methods=["POST"])
@@ -101,18 +134,28 @@ def stop_capture():
     try:
         capture_process.terminate()
         capture_process.wait(timeout=5)
+        logger.info(f"dvgrab terminated normally (PID {capture_status['pid']})")
+        capture_process = None
         capture_status = {"running": False, "filename": None, "pid": None}
         return jsonify({"status": "stopped"})
     except subprocess.TimeoutExpired:
         capture_process.kill()
+        capture_process.wait()
+        logger.warning(f"dvgrab killed after timeout (PID {capture_status['pid']})")
+        capture_process = None
         capture_status = {"running": False, "filename": None, "pid": None}
         return jsonify({"status": "killed"})
     except Exception as e:
+        logger.error(f"Error stopping dvgrab: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/status")
 def status():
     return jsonify(capture_status)
+
+@app.route("/api/version")
+def get_version():
+    return jsonify({"version": VERSION})
 
 @app.route("/api/device")
 def device_status():

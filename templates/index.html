@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#ff9f1c">
+    <meta name="theme-color" content="#0a1628">
     <link rel="manifest" href="/static/manifest.json">
     <link rel="apple-touch-icon" href="/static/icon.svg">
     <title>DVGRAB APP</title>
@@ -336,6 +336,38 @@
             background: #1a2a3d;
         }
 
+        tr.pending-delete {
+            background: #4a1a1a !important;
+        }
+
+        tr.pending-delete td {
+            color: #ff6b6b;
+        }
+
+        .btn-confirm {
+            background: linear-gradient(180deg, #e74c3c 0%, #c0392b 50%, #922b21 100%);
+            border-color: #e74c3c #922b21 #922b21 #e74c3c;
+            color: #fff;
+            padding: 6px 12px;
+            font-size: 0.8em;
+        }
+
+        .btn-confirm:hover {
+            background: linear-gradient(180deg, #ec7063 0%, #e74c3c 50%, #c0392b 100%);
+        }
+
+        .btn-cancel {
+            background: linear-gradient(180deg, #7f8c8d 0%, #6c7a7d 50%, #5a6a6d 100%);
+            border-color: #7f8c8d #5a6a6d #5a6a6d #7f8c8d;
+            color: #fff;
+            padding: 6px 12px;
+            font-size: 0.8em;
+        }
+
+        .btn-cancel:hover {
+            background: linear-gradient(180deg, #95a5a6 0%, #7f8c8d 50%, #6c7a7d 100%);
+        }
+
         .actions {
             display: flex;
             gap: 8px;
@@ -346,6 +378,15 @@
             color: #4a5a6a;
             padding: 30px;
             font-style: italic;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 15px 0 5px;
+            color: #4a5a6a;
+            font-size: 0.75em;
+            border-top: 1px groove #2a4a6a;
+            margin-top: 20px;
         }
 
         @media (max-width: 600px) {
@@ -411,11 +452,16 @@
                 <p class="empty">No files captured yet</p>
             </div>
         </div>
+
+        <div class="footer">
+            v<span id="version">-</span>
+        </div>
     </div>
     
     <script>
         let deviceConnected = false;
         let deviceInfo = {vendor: null, model: null};
+        let pendingDelete = null;
 
         function updateDeviceStatus() {
             fetch('/api/device')
@@ -439,10 +485,11 @@
                     
                     if (data.running) {
                         lcd.classList.add('recording');
-                        lcd.innerHTML = `
-                            <span class="rec-indicator">● REC</span>
-                            <span class="status-text">${data.filename} (PID: ${data.pid})</span>
-                        `;
+                        let recText = '● REC';
+                        if (deviceInfo.vendor || deviceInfo.model) {
+                            recText += ` - ${[deviceInfo.vendor, deviceInfo.model].filter(Boolean).join(' ')}`;
+                        }
+                        lcd.innerHTML = `<span class="rec-indicator">${recText}</span>`;
                         btnStart.disabled = true;
                         btnStop.disabled = false;
                     } else if (deviceConnected) {
@@ -480,13 +527,20 @@
                     let html = '<table><thead><tr><th>Filename</th><th>Size</th><th>Actions</th></tr></thead><tbody>';
                     files.forEach(f => {
                         const size = (f.size / 1024 / 1024).toFixed(2) + ' MB';
-                        html += `<tr>
+                        const isPending = pendingDelete === f.name;
+                        const rowClass = isPending ? 'pending-delete' : '';
+                        let actionsHtml;
+                        if (isPending) {
+                            actionsHtml = `<button class="btn btn-confirm" onclick="confirmDelete('${f.name}')">Confirm?</button>
+                                <button class="btn btn-cancel" onclick="cancelDelete()">Cancel</button>`;
+                        } else {
+                            actionsHtml = `<button class="btn btn-download" onclick="downloadFile('${f.name}')">Download</button>
+                                <button class="btn btn-delete" onclick="deleteFile('${f.name}')">Delete</button>`;
+                        }
+                        html += `<tr class="${rowClass}">
                             <td>${f.name}</td>
                             <td>${size}</td>
-                            <td class="actions">
-                                <button class="btn btn-download" onclick="downloadFile('${f.name}')">Download</button>
-                                <button class="btn btn-delete" onclick="deleteFile('${f.name}')">Delete</button>
-                            </td>
+                            <td class="actions">${actionsHtml}</td>
                         </tr>`;
                     });
                     html += '</tbody></table>';
@@ -530,10 +584,21 @@
         }
         
         function deleteFile(name) {
-            if (confirm('Delete ' + name + '?')) {
-                fetch('/api/delete/' + encodeURIComponent(name), {method: 'DELETE'})
-                    .then(() => updateFiles());
-            }
+            pendingDelete = name;
+            updateFiles();
+        }
+
+        function confirmDelete(name) {
+            fetch('/api/delete/' + encodeURIComponent(name), {method: 'DELETE'})
+                .then(() => {
+                    pendingDelete = null;
+                    updateFiles();
+                });
+        }
+
+        function cancelDelete() {
+            pendingDelete = null;
+            updateFiles();
         }
         
         setInterval(() => { 
@@ -543,8 +608,18 @@
         
         updateDeviceStatus();
         updateFiles();
+        fetch('/api/version').then(r => r.json()).then(data => {
+            document.getElementById('version').textContent = data.version;
+        });
         
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('/static/sw.js');
+
+        document.addEventListener('click', (e) => {
+            if (pendingDelete && !e.target.closest('.actions')) {
+                pendingDelete = null;
+                updateFiles();
+            }
+        });
     </script>
 </body>
 </html>

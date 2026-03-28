@@ -4,6 +4,7 @@ services:
     container_name: dvgrab-web
     devices:
       - /dev/fw0:/dev/fw0
+      - /dev/fw1:/dev/fw1
     volumes:
       - /home/thorsten/media/minidv:/captures
     ports:

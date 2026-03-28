@@ -1,17 +1,18 @@
 {
   "name": "DVGRAB APP",
   "short_name": "DVGRAB",
+  "version": "0.2.0",
   "description": "DV video capture from FireWire camcorders",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a1628",
-  "theme_color": "#ff9f1c",
+  "theme_color": "#0a1628",
   "icons": [
     {
       "src": "/static/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ]
 }
