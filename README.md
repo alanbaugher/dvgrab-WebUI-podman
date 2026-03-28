@@ -163,8 +163,7 @@ docker logs dvgrab-web
 
 ## Based on
 
-- [dvgrab](http://www.kinodv.org/) - The underlying capture tool
-- [ubuntuusers dvgrab wiki](https://wiki.ubuntuusers.de/dvgrab/) - Documentation
+- [dvgrab](https://github.com/ddennedy/dvgrab) - The underlying capture tool
 
 ## License
 
