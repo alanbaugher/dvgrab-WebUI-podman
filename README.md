@@ -158,7 +158,7 @@ docker logs dvgrab-web
 
 - **Python 3.11** - Runtime
 - **Flask** - Web framework
-- **dvgrab** - DV capture tool
+- **dvgrab** - DV capture tool (bundled in container)
 - **Docker** - Containerization
 
 ## Based on
