@@ -415,12 +415,14 @@
     
     <script>
         let deviceConnected = false;
+        let deviceInfo = {vendor: null, model: null};
 
         function updateDeviceStatus() {
             fetch('/api/device')
                 .then(r => r.json())
                 .then(data => {
                     deviceConnected = data.connected;
+                    deviceInfo = {vendor: data.vendor, model: data.model};
                     updateStatusDisplay();
                 });
         }
@@ -445,7 +447,15 @@
                         btnStop.disabled = false;
                     } else if (deviceConnected) {
                         lcd.classList.add('connected');
-                        lcd.innerHTML = '<span class="status-text">► CONNECTED</span>';
+                        let deviceText = '► CONNECTED';
+                        if (deviceInfo.vendor && deviceInfo.model) {
+                            deviceText = `► CONNECTED - ${deviceInfo.vendor} ${deviceInfo.model}`;
+                        } else if (deviceInfo.vendor) {
+                            deviceText = `► CONNECTED - ${deviceInfo.vendor}`;
+                        } else if (deviceInfo.model) {
+                            deviceText = `► CONNECTED - ${deviceInfo.model}`;
+                        }
+                        lcd.innerHTML = `<span class="status-text">${deviceText}</span>`;
                         btnStart.disabled = false;
                         btnStop.disabled = true;
                     } else {

@@ -13,19 +13,37 @@ capture_status = {"running": False, "filename": None, "pid": None}
 def detect_camcorder():
     """Check if a DV camcorder is connected via FireWire/IEEE 1394"""
     devices_path = "/sys/bus/firewire/devices/"
+    result = {"connected": False, "vendor": None, "model": None}
+    
     if not os.path.exists(devices_path):
-        return False
+        return result
     
     try:
         for device in os.listdir(devices_path):
-            is_local_path = os.path.join(devices_path, device, "is_local")
+            device_path = os.path.join(devices_path, device)
+            is_local_path = os.path.join(device_path, "is_local")
             if os.path.exists(is_local_path):
                 with open(is_local_path) as f:
                     if f.read().strip() == "0":
-                        return True
+                        vendor_path = os.path.join(device_path, "vendor_name")
+                        model_path = os.path.join(device_path, "model_name")
+                        
+                        try:
+                            if os.path.exists(vendor_path):
+                                result["vendor"] = open(vendor_path).read().strip()
+                        except:
+                            pass
+                        try:
+                            if os.path.exists(model_path):
+                                result["model"] = open(model_path).read().strip()
+                        except:
+                            pass
+                        
+                        result["connected"] = True
+                        return result
     except (IOError, OSError):
         pass
-    return False
+    return result
 
 def get_files():
     files = []
@@ -98,8 +116,8 @@ def status():
 
 @app.route("/api/device")
 def device_status():
-    """Return whether a DV camcorder is connected"""
-    return jsonify({"connected": detect_camcorder()})
+    """Return DV camcorder connection status and device info"""
+    return jsonify(detect_camcorder())
 
 @app.route("/api/files")
 def list_files():
