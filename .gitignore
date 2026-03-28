@@ -4,6 +4,7 @@ __pycache__/
 captures/
 *.log
 
-# opencode context files
+# opencode files
+opencode.json
 .opencode.md
 CONTEXT/

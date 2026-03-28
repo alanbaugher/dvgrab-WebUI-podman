@@ -9,7 +9,10 @@ A web-based UI for capturing DV video from FireWire-connected camcorders using d
 - **Autosplit** - Automatic scene detection and file splitting
 - **File management** - Download and delete captured files via web UI
 - **Live status** - Real-time capture status updates
+- **Device detection** - Auto-detects connected camcorder with vendor/model info
+- **PWA support** - Install as a standalone app on your device
 - **Headless-friendly** - Perfect for servers without displays
+- **Retro CRT-style UI** - Nostalgic interface with scanlines and LCD aesthetics
 
 ## Requirements
 
@@ -64,11 +67,11 @@ ports:
 
 ### Capture output directory
 
-Files are saved to `/home/thorsten/media/minidv/` by default. To change:
+Files are saved to `/captures` inside the container. To change the host directory:
 
 ```yaml
 volumes:
-  - /your/custom/path:/captures
+  - /path/to/your/captures:/captures
 ```
 
 ### File Formats
@@ -88,6 +91,7 @@ volumes:
 | `/api/start` | POST | Start capture |
 | `/api/stop` | POST | Stop capture |
 | `/api/status` | GET | Get capture status |
+| `/api/device` | GET | Get camcorder connection status |
 | `/api/files` | GET | List captured files |
 | `/api/download/<filename>` | GET | Download a file |
 | `/api/delete/<filename>` | DELETE | Delete a file |
@@ -109,6 +113,11 @@ curl -X POST http://localhost:5151/api/stop
 **Get status:**
 ```bash
 curl http://localhost:5151/api/status
+```
+
+**Get device info:**
+```bash
+curl http://localhost:5151/api/device
 ```
 
 ## Troubleshooting

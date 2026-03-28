@@ -64,7 +64,7 @@ def start_capture():
         return jsonify({"error": "Capture already running"}), 400
     
     data = request.get_json() or {}
-    prefix = data.get("prefix", "capture-")
+    prefix = data.get("prefix", "DV-")
     fmt = data.get("format", "dv2")
     autosplit = data.get("autosplit", False)
     

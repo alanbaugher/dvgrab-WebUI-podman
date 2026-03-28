@@ -81,7 +81,8 @@
         }
 
         .status-lcd .status-text {
-            flex: 1;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .status-lcd.no-signal {
@@ -90,8 +91,7 @@
         }
 
         .status-lcd.no-signal .static-bars {
-            display: inline-block;
-            width: 100%;
+            flex: 1;
             height: 4px;
             background: repeating-linear-gradient(
                 90deg,
@@ -379,7 +379,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Filename Prefix</label>
-                    <input type="text" id="prefix" value="capture-" placeholder="e.g. vacation-">
+                    <input type="text" id="prefix" value="DV-" placeholder="e.g. DV-">
                 </div>
                 <div class="form-group">
                     <label>Format</label>
@@ -460,10 +460,7 @@
                         btnStop.disabled = true;
                     } else {
                         lcd.classList.add('no-signal');
-                        lcd.innerHTML = `
-                            <span class="status-text">NO SIGNAL</span>
-                            <span class="static-bars"></span>
-                        `;
+                        lcd.innerHTML = `<span class="status-text">NO SIGNAL</span><span class="static-bars"></span>`;
                         btnStart.disabled = true;
                         btnStop.disabled = true;
                     }
@@ -499,7 +496,7 @@
         
         function startCapture() {
             const data = {
-                prefix: document.getElementById('prefix').value || 'capture-',
+                prefix: document.getElementById('prefix').value || 'DV-',
                 format: document.getElementById('format').value,
                 autosplit: document.getElementById('autosplit').checked
             };
