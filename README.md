@@ -16,7 +16,7 @@ A web-based UI for capturing DV video from FireWire-connected camcorders using d
 
 ## Screenshot
 
-![UI](screenshots/ui-idle.png)
+![UI](screenshots/dvgrab-recording.png)
 
 ## Requirements
 
