@@ -9,7 +9,7 @@ app = Flask(__name__, static_folder='static')
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 CAPTURE_DIR = "/captures"
 capture_process = None
 capture_status = {"running": False, "filename": None, "pid": None, "format": None, "autosplit": False, "last_error": None}
