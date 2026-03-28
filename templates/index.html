@@ -112,6 +112,16 @@
             color: #39ff14;
             text-shadow: 0 0 8px #39ff14;
         }
+        
+        .status-lcd.connecting {
+            color: #ffcc00;
+            text-shadow: 0 0 8px #ffcc00;
+        }
+        
+        .status-lcd.error {
+            color: #ff6b6b;
+            text-shadow: 0 0 8px #ff6b6b;
+        }
 
         .status-lcd.recording {
             color: #ff9f1c;
@@ -460,6 +470,7 @@
     
     <script>
         let deviceConnected = false;
+        let deviceReady = false;
         let deviceInfo = {vendor: null, model: null};
         let pendingDelete = null;
 
@@ -468,6 +479,7 @@
                 .then(r => r.json())
                 .then(data => {
                     deviceConnected = data.connected;
+                    deviceReady = data.ready;
                     deviceInfo = {vendor: data.vendor, model: data.model};
                     updateStatusDisplay();
                 });
@@ -481,7 +493,7 @@
                     const btnStart = document.getElementById('btn-start');
                     const btnStop = document.getElementById('btn-stop');
                     
-                    lcd.classList.remove('no-signal', 'connected', 'recording');
+                    lcd.classList.remove('no-signal', 'connected', 'connecting', 'recording', 'error');
                     
                     if (data.running) {
                         lcd.classList.add('recording');
@@ -492,18 +504,28 @@
                         lcd.innerHTML = `<span class="rec-indicator">${recText}</span>`;
                         btnStart.disabled = true;
                         btnStop.disabled = false;
-                    } else if (deviceConnected) {
+                    } else if (data.last_error) {
+                        lcd.classList.add('error');
+                        lcd.innerHTML = `<span class="status-text">ERROR: ${data.last_error.substring(0, 50)}</span>`;
+                        btnStart.disabled = !deviceReady;
+                        btnStop.disabled = true;
+                    } else if (deviceConnected && deviceReady) {
                         lcd.classList.add('connected');
-                        let deviceText = '► CONNECTED';
+                        let deviceText = 'READY';
                         if (deviceInfo.vendor && deviceInfo.model) {
-                            deviceText = `► CONNECTED - ${deviceInfo.vendor} ${deviceInfo.model}`;
+                            deviceText = `READY: ${deviceInfo.vendor} ${deviceInfo.model}`;
                         } else if (deviceInfo.vendor) {
-                            deviceText = `► CONNECTED - ${deviceInfo.vendor}`;
+                            deviceText = `READY: ${deviceInfo.vendor}`;
                         } else if (deviceInfo.model) {
-                            deviceText = `► CONNECTED - ${deviceInfo.model}`;
+                            deviceText = `READY: ${deviceInfo.model}`;
                         }
                         lcd.innerHTML = `<span class="status-text">${deviceText}</span>`;
                         btnStart.disabled = false;
+                        btnStop.disabled = true;
+                    } else if (deviceConnected && !deviceReady) {
+                        lcd.classList.add('connecting');
+                        lcd.innerHTML = `<span class="status-text">CONNECTING...</span>`;
+                        btnStart.disabled = true;
                         btnStop.disabled = true;
                     } else {
                         lcd.classList.add('no-signal');
