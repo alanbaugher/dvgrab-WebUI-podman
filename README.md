@@ -185,9 +185,9 @@ docker compose logs -f
 - **dvgrab** - DV capture tool (bundled in container)
 - **Docker** - Containerization
 
-## Based on
+## Acknowledgments
 
-- [dvgrab](https://github.com/ddennedy/dvgrab) - The underlying capture tool
+This project uses [dvgrab](https://github.com/ddennedy/dvgrab), licensed under GPL-2.0, for DV video capture over FireWire.
 
 ## License
 
