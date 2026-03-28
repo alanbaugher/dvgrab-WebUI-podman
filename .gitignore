@@ -4,7 +4,13 @@ __pycache__/
 captures/
 *.log
 
-# opencode files
+# AI agent files
 opencode.json
 .opencode.md
 CONTEXT/
+AGENTS.md
+.cursorrules
+.claude*
+.aider*
+CLAUDE.md
+.github/copilot-instructions.md
