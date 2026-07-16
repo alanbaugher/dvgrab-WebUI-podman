@@ -1,16 +1,12 @@
+.env
+.env.*
 __pycache__/
 *.pyc
-.DS_Store
-captures/
-*.log
-
-# AI agent files
-opencode.json
-.opencode.md
-CONTEXT/
-AGENTS.md
-.cursorrules
-.claude*
-.aider*
-CLAUDE.md
-.github/copilot-instructions.md
+node_modules/
+archive/
+dist/
+build/
+venv/
+.venv/
+*.db
+*.sqlite
