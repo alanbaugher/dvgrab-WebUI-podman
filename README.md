@@ -1,5 +1,8 @@
 # dvgrab-WebUI-podman
 
+<img width="992" height="784" alt="image" src="https://github.com/user-attachments/assets/8f6dbd99-f624-4cee-af9a-c5f924b37eab" />  
+
+
 A rootless Podman appliance for reliable Digital8 and MiniDV capture using **dvgrab** and a modern web interface.
 
 This project packages the original **dvgrab-WebUI** application into a dedicated NUC appliance with a firewire card designed for long-term Digital8 and MiniDV preservation on Linux. It replaces the original Docker deployment with a fully rootless Podman + Quadlet + systemd architecture, adds deployment automation, validation tools, and extensive documentation for dedicated capture systems.
