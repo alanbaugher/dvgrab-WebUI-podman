@@ -2,7 +2,6 @@
 
 ## dvgrab-WebUI-podman
 
-Copyright (c) 2026
 
 This repository contains original work together with modifications,
 enhancements, packaging, and deployment improvements built upon existing
