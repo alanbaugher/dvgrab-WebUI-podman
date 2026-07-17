@@ -170,6 +170,12 @@ def start_capture():
         return jsonify({"error": "Camera not ready - wait a moment and try again"}), 400
     
     cmd = ["dvgrab", "-f", fmt]
+
+    # AVI Type-1 and Type-2 need OpenDML for files larger than the
+    # traditional AVI size limits. --size 0 disables size-based splitting.
+    if fmt in {"dv1", "dv2"}:
+        cmd.extend(["--opendml", "--size", "0"])
+
     if device.get("guid"):
         cmd.extend(["-guid", device["guid"]])
     if autosplit:
