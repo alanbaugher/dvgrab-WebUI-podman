@@ -159,7 +159,8 @@ This avoids multiple dvgrab instances attempting to control the same FireWire de
 
 # Tested Hardware
 
-<img width="1902" height="1117" alt="image" src="https://github.com/user-attachments/assets/d3ba13e5-eb00-4415-8404-1cc1ad8c482b" />  
+
+<img width="1998" height="1125" alt="image" src="https://github.com/user-attachments/assets/61be098b-79f4-47e3-8160-c6c4b57cdd4b" />  
 
 
 Validated with:
