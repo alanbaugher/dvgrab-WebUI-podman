@@ -372,6 +372,30 @@ Expected:
 
 ---
 
+# NFS Notes
+
+sudo apt install nfs-common
+
+$ which mount.nfs
+/usr/sbin/mount.nfs
+
+$ cat /etc/fstab | grep nfs
+192.168.X.YY:/volume1/Digital8  /mnt/digital8  nfs4  vers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport,_netdev,nofail  0  0
+
+$ showmount -a 192.168.X.YY
+All mount points on 192.168.X.YY:
+192.168.X.ZZ:/volume1/Digital8
+
+$ mount | grep digital8
+192.168.X.YY:/volume1/Digital8 on /mnt/digital8 type nfs4 (rw,relatime,vers=4.1,rsize=131072,wsize=131072,namlen=255,hard,noresvport,fatal_neterrors=none,proto=tcp,timeo=600,retrans=2,sec=sys,clientaddr=192.168.X.ZZ,local_lock=none,addr=192.168.X.YY,_netdev)
+
+
+<img width="4410" height="760" alt="image" src="https://github.com/user-attachments/assets/971390e7-1666-4431-80be-68e3a990504e" />  
+
+
+
+---
+
 # Notes
 
 The container intentionally runs as UID 0 internally.
