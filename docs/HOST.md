@@ -390,7 +390,13 @@ $ mount | grep digital8
 192.168.X.YY:/volume1/Digital8 on /mnt/digital8 type nfs4 (rw,relatime,vers=4.1,rsize=131072,wsize=131072,namlen=255,hard,noresvport,fatal_neterrors=none,proto=tcp,timeo=600,retrans=2,sec=sys,clientaddr=192.168.X.ZZ,local_lock=none,addr=192.168.X.YY,_netdev)
 
 
-<img width="4410" height="760" alt="image" src="https://github.com/user-attachments/assets/971390e7-1666-4431-80be-68e3a990504e" />  
+
+On Synology  
+
+<img width="1134" height="697" alt="image" src="https://github.com/user-attachments/assets/3675e6ca-7b10-4706-a715-b6a782a664d5" />  
+<img width="1178" height="617" alt="image" src="https://github.com/user-attachments/assets/a52141b7-01df-494e-be29-efcf0d122f5b" />  
+<img width="1284" height="319" alt="image" src="https://github.com/user-attachments/assets/86764bd2-fc04-4342-92ff-b026c29c8297" />  
+
 
 
 
